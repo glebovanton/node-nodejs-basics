@@ -1,6 +1,5 @@
 import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
-import { pipeline } from 'stream';
 import path from "path";
 
 const calculateHash = async () => {
@@ -10,19 +9,21 @@ const calculateHash = async () => {
     const algorithm = 'sha256'
     const hash = createHash(algorithm);
 
-    pipeline(
-        createReadStream(file),
-        hash,
-        (err) => {
-            if (err) {
-                console.error('Pipeline failed:', err);
-            } else {
-                const result = hash.digest('hex');
-                console.log(`File: ${file}`);
-                console.log(`${algorithm} hash: ${result}`);
-            }
-        }
-    );
+    const readable = createReadStream(file);
+
+    readable.on('data', (chunk) => {
+        hash.update(chunk);
+    });
+
+    readable.on('end', () => {
+        const result = hash.digest('hex');
+        console.log(`File: ${file}`);
+        console.log(`${algorithm} hash: ${result}`);
+    });
+
+    readable.on('error', (err) => {
+        console.error('Pipeline failed:', err);
+    });
 };
 
 await calculateHash();

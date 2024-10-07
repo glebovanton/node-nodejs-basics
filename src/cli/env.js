@@ -1,8 +1,8 @@
 const parseEnv = () => {
-    const matchingEnvs = process.argv.slice(2).filter(function (val) {
-        const prefix = 'RSS_'
-        return val.indexOf(prefix) === 0
-    });
+    const prefix = 'RSS_';
+    const matchingEnvs = Object.keys(process.env)
+        .filter(key => key.startsWith(prefix))
+        .map(key => `${key}=${process.env[key]}`);
 
     process.stdout.write(matchingEnvs.join('; '));
 };
